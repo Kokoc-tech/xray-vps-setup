@@ -3,7 +3,7 @@
 set -e
 
 export GIT_BRANCH="marzban"
-export GIT_REPO="Akiyamov/xray-vps-setup"
+export GIT_REPO="Kokoc-tech/xray-vps-setup"
 
 # Check if script started as root
 if [ "$EUID" -ne 0 ]
@@ -93,8 +93,8 @@ export XRAY_CFG="/usr/local/etc/xray/config.json"
 
 # Install marzban
 xray_setup() {
-  mkdir -p /opt/xray-vps-setup
-  cd /opt/xray-vps-setup
+  mkdir -p /opt
+  cd /opt
   if [[ "${marzban_input,,}" == "y" ]]; then
     export MARZBAN_PASS=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13; echo)
     export MARZBAN_PATH=$(openssl rand -hex 8)
@@ -108,23 +108,23 @@ xray_setup() {
      .services.marzban.volumes[0] = "./marzban_lib:/var/lib/marzban" | 
      .services.marzban.volumes[1] = "./marzban/xray_config.json:/code/xray_config.json" |
      .services.marzban.volumes[2] = "./marzban/templates:/var/lib/marzban/templates" |
-     .services.caddy.volumes[2] = "./marzban_lib:/run/marzban"' -i /opt/xray-vps-setup/docker-compose.yml
+     .services.caddy.volumes[2] = "./marzban_lib:/run/marzban"' -i /opt/docker-compose.yml
     mkdir -p marzban caddy
     wget -qO- https://raw.githubusercontent.com/$GIT_REPO/refs/heads/$GIT_BRANCH/templates_for_script/marzban | envsubst > ./marzban/.env
-    mkdir -p /opt/xray-vps-setup/marzban/templates/home
+    mkdir -p /opt/marzban/templates/home
     wget -qO- https://raw.githubusercontent.com/$GIT_REPO/refs/heads/$GIT_BRANCH/templates_for_script/confluence_page | envsubst > ./marzban/templates/home/index.html
     export CADDY_REVERSE="reverse_proxy * unix//run/marzban/marzban.socket"
     wget -qO- "https://raw.githubusercontent.com/$GIT_REPO/refs/heads/$GIT_BRANCH/templates_for_script/caddy" | envsubst > ./caddy/Caddyfile
     wget -qO- "https://raw.githubusercontent.com/$GIT_REPO/refs/heads/$GIT_BRANCH/templates_for_script/xray" | envsubst > ./marzban/xray_config.json
   else
     wget -qO- https://raw.githubusercontent.com/$GIT_REPO/refs/heads/$GIT_BRANCH/templates_for_script/compose | envsubst > ./docker-compose.yml
-    mkdir -p /opt/xray-vps-setup/caddy/templates
+    mkdir -p /opt/caddy/templates
     yq eval \
     '.services.xray.image = "ghcr.io/xtls/xray-core:25.1.1" | 
     .services.xray.restart = "always" | 
     .services.xray.network_mode = "host" | 
     .services.caddy.volumes[2] = "./caddy/templates:/srv" |
-    .services.xray.volumes[0] = "./xray:/etc/xray"' -i /opt/xray-vps-setup/docker-compose.yml
+    .services.xray.volumes[0] = "./xray:/etc/xray"' -i /opt/docker-compose.yml
     wget -qO- https://raw.githubusercontent.com/$GIT_REPO/refs/heads/$GIT_BRANCH/templates_for_script/confluence_page | envsubst > ./caddy/templates/index.html
     export CADDY_REVERSE="root * /srv
     file_server"
@@ -201,9 +201,9 @@ warp_install() {
     warp-cli proxy port 40000
     warp-cli connect
     if [[ "${marzban_input,,}" == "y" ]]; then
-      export XRAY_CONFIG_WARP="/opt/xray-vps-setup/marzban/xray_config.json"
+      export XRAY_CONFIG_WARP="/opt/marzban/xray_config.json"
     else
-      export XRAY_CONFIG_WARP="/opt/xray-vps-setup/xray/config.json"
+      export XRAY_CONFIG_WARP="/opt/xray/config.json"
     fi
     yq eval \
     '.outbounds[.outbounds | length ] |= . + {"tag": "warp","protocol": "socks","settings": {"servers": [{"address": "127.0.0.1","port": 40000}]}}' \
@@ -211,18 +211,18 @@ warp_install() {
     yq eval \
     '.routing.rules[.routing.rules | length ] |= . + {"outboundTag": "warp", "domain": ["geosite:category-ru"]}' \
     -i $XRAY_CONFIG_WARP
-    docker compose -f /opt/xray-vps-setup/docker-compose.yml down && docker compose -f /opt/xray-vps-setup/docker-compose.yml up -d
+    docker compose -f /opt/docker-compose.yml down && docker compose -f /opt/docker-compose.yml up -d
   fi
 }
 
 end_script() {
   if [[ "${marzban_input,,}" == "y" ]]; then
-    docker run -v /opt/xray-vps-setup/caddy/Caddyfile:/opt/xray-vps-setup/Caddyfile --rm caddy caddy fmt --overwrite /opt/xray-vps-setup/Caddyfile
-    docker compose -f /opt/xray-vps-setup/docker-compose.yml up -d
+    docker run -v /opt/caddy/Caddyfile:/opt/Caddyfile --rm caddy caddy fmt --overwrite /opt/Caddyfile
+    docker compose -f /opt/docker-compose.yml up -d
     echo "Marzban location: https://$VLESS_DOMAIN/$MARZBAN_PATH. Marzban user: xray_admin, password: $MARZBAN_PASS"
   else
-    docker run -v /opt/xray-vps-setup/caddy/Caddyfile:/opt/xray-vps-setup/Caddyfile --rm caddy caddy fmt --overwrite /opt/xray-vps-setup/Caddyfile
-    docker compose -f /opt/xray-vps-setup/docker-compose.yml up -d
+    docker run -v /opt/caddy/Caddyfile:/opt/Caddyfile --rm caddy caddy fmt --overwrite /opt/Caddyfile
+    docker compose -f /opt/docker-compose.yml up -d
     echo "Clipboard string format"
     echo "vless://$XRAY_UUID@$VLESS_DOMAIN:443?type=tcp&security=reality&pbk=$XRAY_PBK&fp=chrome&sni=$VLESS_DOMAIN&sid=$XRAY_SID&spx=%2F&flow=xtls-rprx-vision" | envsubst
     echo "XRay outbound config"
