@@ -11,17 +11,17 @@ VLESS со своим доменом. А что еще нужно для сча�
 - - Добавит этому пользователю ключ для SSH, запретив вход по паролю
 - Настроит WARP для ру-сайтов.  
 ```bash
-bash <(wget -qO- https://raw.githubusercontent.com/Akiyamov/xray-vps-setup/refs/heads/main/vps-setup.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/Kokoc-tech/xray-vps-setup/refs/heads/main/vps-setup.sh)
 ```
 
 ## Плейбук
 
-[Ansible-galaxy](https://galaxy.ansible.com/ui/standalone/roles/Akiyamov/xray-vps-setup/install/)
+[Ansible-galaxy](https://galaxy.ansible.com/ui/standalone/roles/Kokoc-tech/xray-vps-setup/install/)
 ```yaml
 - name: Setup vps 
   hosts: some_host
   roles:
-    - Akiyamov.xray-vps-setup  
+    - Kokoc-tech.xray-vps-setup  
   vars:
     domain: example.com # домен, уровень неважен
     setup_variant: marzban # marzban or xray
@@ -35,7 +35,7 @@ bash <(wget -qO- https://raw.githubusercontent.com/Akiyamov/xray-vps-setup/refs/
 
 ## Ручная установка
 
-Описана [здесь](https://github.com/Akiyamov/xray-vps-setup/blob/main/install_in_docker.md).  
+Описана [здесь](https://github.com/Kokoc-tech/xray-vps-setup/blob/main/install_in_docker.md).  
 
 ## Почему не nginx, haproxy, 3x-ui, x-ui, sing-box...
 
@@ -45,7 +45,7 @@ Sing-box не очень.
 XHTTP позже, а больше не надо. Уже точно. 
 
 ## Связь
-Issues, PR ну или мой [тг](https://t.me/Akiyamov).
+Issues, PR ну или мой [тг](https://t.me/Kokoc-tech).
 
 > [!IMPORTANT]
 > Дайте секс
